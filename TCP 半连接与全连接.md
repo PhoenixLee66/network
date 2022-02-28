@@ -49,11 +49,15 @@
 
 ###### 2. SYN 攻击防御
 
-- 增大半连接队列：增大 tcp_max_syn_backlog 的值，还需一同增大 somaxconn 和 backlog
+- 治标（临时方法）
+  
+  - 增大半连接队列：增大 tcp_max_syn_backlog 的值，还需一同增大 somaxconn 和 backlog
+  
+  - 开启 tcp_syncookies 功能
+  
+  - 减少 SYN+ACK 重传次数：/etc/sysctl.conf 配置 net.ipv4.tcp_synack_retries
 
-- 开启 tcp_syncookies 功能
-
-- 减少 SYN+ACK 重传次数：/etc/sysctl.conf 配置 net.ipv4.tcp_synack_retries
+- 治本（类似流量清洗，比如引入中间代理）
 
 #### 3. 全连接队列
 
@@ -119,8 +123,6 @@ ESTAB      39     0         127.0.0.1:808       127.0.0.1:35016
 
 > wrk 工具：[GitHub - wg/wrk: Modern HTTP benchmarking tool](https://github.com/wg/wrk.git)
 
-
-
 - session 1
 
 ```bash
@@ -148,15 +150,11 @@ LISTEN     510    511        *:808                 *:*
     105283 times the listen queue of a socket overflowed
 [root@ttt ~]# netstat -s |grep overflow
     105930 times the listen queue of a socket overflowed
-
-
 ```
 
     当服务端并发处理大量请求时，如果 TCP 全连接队列过小，就容易溢出。发生 TCP 全连接队溢出的时候，后续的请求就会被丢弃，这样就会出现服务端请求数量上不去的现象。
 
 ![全连接队列溢出](http://pic2.zhimg.com/80/v2-59396b0f9eb18eca18fff60398558dc1_720w.jpg)
-
-
 
     tcp_abort_on_overflow 两个值表示含义：
 
@@ -164,10 +162,7 @@ LISTEN     510    511        *:808                 *:*
 
 - 1：服务端发送 RST 包，在客户端异常中可以看到很多 `connection reset by peer` 的错误
 
-
-
 <h6>参考资料：</h6>
 
 1. [TCP 半连接队列和全连接队列满了会发生什么？又该如何应对](https://zhuanlan.zhihu.com/p/144785626)
-
-
+2. [性能分析之TCP全连接队列占满问题分析及优化过程 - 云+社区 - 腾讯云](https://cloud.tencent.com/developer/article/1558493)
